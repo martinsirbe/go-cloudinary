@@ -1,7 +1,5 @@
 # Cloudinary CLI
 
-## Overview
-
 An unofficial command-line interface (CLI) for Cloudinary, written in Go, leveraging the official
 Cloudinary SDK. This tool allows users to interact with Cloudinary services directly from the
 command line, making it easier to manage and upload media assets.
@@ -16,11 +14,27 @@ command line, making it easier to manage and upload media assets.
 
 ## Installation
 
-To install the Cloudinary CLI, ensure you have Go installed and then run:
+For convenience, pre-built binaries are available for various platforms. Download the appropriate binary for your system from the releases page.
 
-```bash
-go install github.com/yourusername/cloudinary-cli@latest
+### Homebrew
+
+To install the Year Progress Indicator using Homebrew on macOS or Linux, you can follow these steps:
+
+```shell
+brew tap martinsirbe/clinkclank
+brew install martinsirbe/clinkclank/cld
 ```
+
+This will add the custom tap and install the `cld` CLI, making it readily accessible from any terminal.
+
+### Build from Source
+Make sure you have Go installed. You can then install the Year Progress Indicator globally via the following command:
+
+```shell
+go install github.com/martinsirbe/go-cloudinary/cmd/cld@v0.0.0
+```
+
+This command compiles and installs the binary to your Go bin directory, making it accessible from any terminal provided the directory is in your system's PATH.
 
 ## Configuration
 
