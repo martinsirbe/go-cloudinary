@@ -1,0 +1,37 @@
+version: 1
+project_name: cld
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - main: ./cmd/cld
+    binary: cld
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+release:
+  prerelease: auto
+universal_binaries:
+  - replace: true
+brews:
+  - name: cld
+    description: "An unofficial CLI for Cloudinary"
+    homepage: "https://github.com/martinsirbe/go-cloudinary"
+    repository:
+      owner: martinsirbe
+      name: homebrew-clinkclank
+    commit_author:
+      name: martinsirbe
+      email: martins_irbe@mail.com
+    caveats: |
+      Thank you for installing the Cloudinary CLI (cld)!
+
+      The `CLOUDINARY_URL` environment variable is mandatory. Set it before using cld:
+      `export CLOUDINARY_URL=cloudinary://api_key:api_secret@my_cloud_name`
+    test: |
+      system "#{bin}/cld", "--help"
+checksum:
+  name_template: 'checksums.txt'
