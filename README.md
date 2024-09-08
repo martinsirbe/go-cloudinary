@@ -11,10 +11,12 @@ command line, making it easier to manage and upload media assets.
 - Process entire directories of image files.
 - Specify file extensions to filter files for upload.
 - Utilise the power and simplicity of Go for fast and efficient CLI operations.
+- Support multiple Cloudinary accounts.
 
 ## Installation
 
-For convenience, pre-built binaries are available for various platforms. Download the appropriate binary for your system from the releases page.
+For convenience, pre-built binaries are available for various platforms. Download the appropriate
+binary for your system from the releases page.
 
 ### Homebrew
 
@@ -25,16 +27,20 @@ brew tap martinsirbe/clinkclank
 brew install martinsirbe/clinkclank/cld
 ```
 
-This will add the custom tap and install the `cld` CLI, making it readily accessible from any terminal.
+This will add the custom tap and install the `cld` CLI, making it readily accessible from any
+terminal.
 
 ### Build from Source
-Make sure you have Go installed. You can then install the Year Progress Indicator globally via the following command:
+
+Make sure you have Go installed. You can then install the Year Progress Indicator globally via the
+following command:
 
 ```shell
-go install github.com/martinsirbe/go-cloudinary/cmd/cld@v0.0.0
+go install github.com/martinsirbe/go-cloudinary/cmd/cld@v0.0.1
 ```
 
-This command compiles and installs the binary to your Go bin directory, making it accessible from any terminal provided the directory is in your system's PATH.
+This command compiles and installs the binary to your Go bin directory, making it accessible from
+any terminal provided the directory is in your system's PATH.
 
 ## Configuration
 
@@ -51,14 +57,39 @@ Example:
 export CLOUDINARY_URL=cloudinary://api_key:api_secret@my_cloud_name
 ```
 
-Optionally, set additional parameters, for example, `upload_prefix` and `secure_distribution`, to the
-environment variable:
+Optionally, set additional parameters, for example, `upload_prefix` and `secure_distribution`, to
+the environment variable:
 
 Example:
 
 ```bash
 export CLOUDINARY_URL=cloudinary://api_key:api_secret@my_cloud_name?secure_distribution=example.com&upload_prefix=example
 ```
+
+### Multiple URL Support
+
+You can now configure multiple Cloudinary URLs by separating them with commas in
+the `CLOUDINARY_URL` environment variable. This is useful if you need to work with multiple
+Cloudinary accounts or environments.
+
+Example:
+
+```bash
+export CLOUDINARY_URL=cloudinary://api_key:api_secret@my_cloud_name,cloudinary://api_key:api_secret@my_other_cloud_name
+```
+
+If multiple URLs are configured but no specific URL is selected when invoking the CLI, the **first
+URL** will be used by default. To select a specific account, you can provide the `-a` or `--api-key`
+option when running the CLI:
+
+Example:
+
+```bash
+cld -a api_key
+```
+
+This will instruct the CLI to use the account associated with the provided `api_key`. Ensure that
+each `cloudinary://` URL has its own `api_key`, `api_secret`, and `cloud_name`.
 
 ## Usage
 
@@ -81,24 +112,28 @@ cld [ -p <preset> | --preset <preset> ] [ -f <folder> | --folder <folder> ] [ -e
 ## Examples
 
 To upload a single image:
+
 ```bash
 cld test.webp
 image uploaded: https://res.cloudinary.com/dyodcxgg5/image/upload/v1721945485/benqcqpstfjv5noutjih.webp
 ```
 
 To upload a single image using a preset:
+
 ```bash
 cld -p test-preset test.webp
 image uploaded: https://res.cloudinary.com/dyodcxgg5/image/upload/v1721945634/test-folder/test.webp
 ```
 
 To upload a single image using a preset and folder:
+
 ```bash
 cld -p test-preset -f test-folder/hello test.webp
 image uploaded: https://res.cloudinary.com/dyodcxgg5/image/upload/v1721945718/test-folder/hello/test.webp
 ```
 
 To upload all images with a specific file extension `webp`:
+
 ```bash
 cld -p test-preset -e webp .
 image uploaded: https://res.cloudinary.com/dyodcxgg5/image/upload/v1721945983/test-folder/test_2xl.webp
@@ -106,6 +141,7 @@ image uploaded: https://res.cloudinary.com/dyodcxgg5/image/upload/v1721945984/te
 ```
 
 To upload all images with specific file extensions `jpg` and `png`:
+
 ```bash
 cld -p test-preset -e jpg,png .
 image uploaded: https://res.cloudinary.com/dyodcxgg5/image/upload/v1721946123/test-folder/test.jpg

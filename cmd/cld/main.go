@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/cloudinary/cloudinary-go/v2"
@@ -21,9 +23,27 @@ func main() {
 	uploadFolder := app.StringOpt("f folder", "", "Cloudinary upload folder")
 	fileExtensions := app.StringOpt("e extensions", "jpg,jpeg,png,gif,bmp,tiff,webp",
 		"Comma-separated list of file extensions to upload")
+	apiKey := app.StringOpt("a api-key", "", "API key to select Cloudinary account")
 
 	app.Action = func() {
-		cld, err := cloudinary.New()
+		cloudinaryURL := os.Getenv("CLOUDINARY_URL")
+		if cloudinaryURL == "" {
+			log.Fatalf("CLOUDINARY_URL environment variable is not set")
+		}
+
+		urls := strings.Split(cloudinaryURL, ",")
+		switch {
+		case apiKey != nil && *apiKey != "":
+			url, err := getCloudinaryURL(urls, *apiKey)
+			if err != nil {
+				log.Fatalf("failed to get Cloudinary URL for API key %s: %s", *apiKey, err)
+			}
+			cloudinaryURL = url
+		case len(urls) > 1:
+			cloudinaryURL = urls[0]
+		}
+
+		cld, err := cloudinary.NewFromURL(cloudinaryURL)
 		if err != nil {
 			log.Fatalf("failed to create a new Cloudinary client: %s", err)
 		}
@@ -34,6 +54,27 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		log.Fatalf("failed to run app: %v", err)
 	}
+}
+
+// getCloudinaryURL check given URLs and returns Cloudinary URL for the matching API key.
+// Returns an error if API key is not found.
+func getCloudinaryURL(urls []string, apiKey string) (string, error) {
+	if apiKey == "" {
+		return "", nil
+	}
+
+	cloudinaryRegex := regexp.MustCompile(`cloudinary://([^:]+):.*`)
+
+	for _, url := range urls {
+		matches := cloudinaryRegex.FindStringSubmatch(url)
+		if len(matches) == 2 {
+			if matches[1] == apiKey {
+				return url, nil
+			}
+		}
+	}
+
+	return "", errors.New("url not found")
 }
 
 func process(
