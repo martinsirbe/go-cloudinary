@@ -15,6 +15,8 @@ import (
 	cli "github.com/jawher/mow.cli"
 )
 
+const cloudinaryURLEnvVar = "CLOUDINARY_URL"
+
 func main() {
 	app := cli.App("cld", "Uploads images to Cloudinary")
 
@@ -26,9 +28,9 @@ func main() {
 	apiKey := app.StringOpt("a api-key", "", "API key to select Cloudinary account")
 
 	app.Action = func() {
-		cloudinaryURL := os.Getenv("CLOUDINARY_URL")
+		cloudinaryURL := os.Getenv(cloudinaryURLEnvVar)
 		if cloudinaryURL == "" {
-			log.Fatalf("CLOUDINARY_URL environment variable is not set")
+			log.Fatalf("%s environment variable is not set", cloudinaryURLEnvVar)
 		}
 
 		urls := strings.Split(cloudinaryURL, ",")
@@ -48,7 +50,9 @@ func main() {
 			log.Fatalf("failed to create a new Cloudinary client: %s", err)
 		}
 
-		process(cld, fileExtensions, uploadPreset, uploadFolder, imagePath)
+		if err := process(cld, fileExtensions, uploadPreset, uploadFolder, imagePath); err != nil {
+			log.Fatalf("image upload failed: %s", err)
+		}
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -80,7 +84,7 @@ func getCloudinaryURL(urls []string, apiKey string) (string, error) {
 func process(
 	cld *cloudinary.Cloudinary,
 	fileExtensions, uploadPreset, uploadFolder, imagePath *string,
-) {
+) error {
 	extList := strings.Split(*fileExtensions, ",")
 	for i, ext := range extList {
 		extList[i] = strings.ToLower(strings.TrimSpace(ext))
@@ -88,22 +92,21 @@ func process(
 
 	fileInfo, err := os.Stat(*imagePath)
 	if err != nil {
-		log.Fatalf("failed to stat input path: %v", err)
+		return fmt.Errorf("failed to stat input path: %w", err)
 	}
 
 	ctx := context.Background()
 	if !fileInfo.IsDir() {
 		if isImage(fileInfo.Name(), extList) {
-			uploadFile(ctx, cld, *imagePath, *uploadPreset, *uploadFolder)
-			return
+			return uploadFile(ctx, cld, *imagePath, *uploadPreset, *uploadFolder)
 		}
 
-		log.Fatalf("input file is not a supported image: %s\n", *imagePath)
+		return fmt.Errorf("input file is not a supported image: %s", *imagePath)
 	}
 
 	files, err := os.ReadDir(*imagePath)
 	if err != nil {
-		log.Fatalf("failed to read image dir: %v", err)
+		return fmt.Errorf("failed to read image dir: %w", err)
 	}
 
 	for _, file := range files {
@@ -111,8 +114,13 @@ func process(
 			continue
 		}
 
-		uploadFile(ctx, cld, filepath.Join(*imagePath, file.Name()), *uploadPreset, *uploadFolder)
+		if err := uploadFile(ctx, cld, filepath.Join(*imagePath, file.Name()),
+			*uploadPreset, *uploadFolder); err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 func isImage(fileName string, extList []string) bool {
@@ -128,7 +136,7 @@ func uploadFile(
 	ctx context.Context,
 	cld *cloudinary.Cloudinary,
 	filePath, preset, folder string,
-) {
+) error {
 	uploadParams := uploader.UploadParams{}
 	if preset != "" {
 		uploadParams.UploadPreset = preset
@@ -139,9 +147,9 @@ func uploadFile(
 
 	resp, err := cld.Upload.Upload(ctx, filePath, uploadParams)
 	if err != nil {
-		fmt.Printf("failed to upload image %s: %v\n", filePath, err)
-		return
+		return fmt.Errorf("failed to upload image %s: %w", filePath, err)
 	}
 
 	fmt.Printf("image uploaded: %s\n", resp.SecureURL)
+	return nil
 }
