@@ -6,12 +6,28 @@ command line, making it easier to manage and upload media assets.
 
 ## Features
 
-- Upload images to Cloudinary.
+- Upload image, video and audio files to Cloudinary.
 - Specify upload presets and folders.
-- Process entire directories of image files.
+- Process entire directories of files.
 - Specify file extensions to filter files for upload.
 - Utilise the power and simplicity of Go for fast and efficient CLI operations.
 - Support multiple Cloudinary accounts.
+
+## Supported File Formats
+
+The following file extensions are supported for upload.
+
+### Image
+`ai`, `gif`, `png`, `webp`, `bmp`, `bw`, `djvu`, `dng`, `ps`, `ept`, `eps`, `eps3`, `fbx`, `flif`, `glb`, `gltf`, `heif`, `heic`, `ico`, `indd`, `jpg`, `jpeg`, `jp2`, `wdp`, `jxr`, `hdp`, `jxl`, `obj`, `pdf`, `ply`, `psd`, `arw`, `cr2`, `cr3`, `svg`, `tga`, `tif`, `tiff`, `u3ma`, `usdz`.
+For more details, see the [supported image formats](https://cloudinary.com/documentation/image_transformations#supported_image_formats).
+
+### Video
+`3g2`, `3gp`, `avi`, `flv`, `m3u8`, `ts`, `m2ts`, `mts`, `mov`, `mkv`, `mp4`, `mpeg`, `mpd`, `mxf`, `ogv`, `webm`, `wmv`.
+For more details, see the [supported video formats](https://cloudinary.com/documentation/video_manipulation_and_delivery#supported_video_formats).
+
+### Audio
+`aac`, `aiff`, `amr`, `flac`, `m4a`, `mp3`, `ogg`, `opus`, `wav`.
+For more details, see the [supported audio formats](https://cloudinary.com/documentation/audio_transformations#supported_audio_formats).
 
 ## Installation
 

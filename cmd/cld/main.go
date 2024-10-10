@@ -17,13 +17,20 @@ import (
 
 const cloudinaryURLEnvVar = "CLOUDINARY_URL"
 
+var supportedFileExtensions = []string{"ai", "gif", "png", "webp", "bmp", "bw", "djvu", "dng", "ps",
+	"ept", "eps", "eps3", "fbx", "flif", "glb", "gltf", "heif", "heic", "ico", "indd", "jpg", "jpe",
+	"jpeg", "jp2", "wdp", "jxr", "hdp", "jxl", "obj", "pdf", "ply", "psd", "arw", "cr2", "cr3", "svg",
+	"tga", "tif", "tiff", "u3ma", "usdz", "3g2", "3gp", "avi", "flv", "m3u8", "ts", "m2ts", "mts",
+	"mov", "mkv", "mp4", "mpeg", "mpd", "mxf", "ogv", "webm", "wmv", "aac", "aiff", "amr", "flac",
+	"m4a", "mp3", "ogg", "opus", "wav"}
+
 func main() {
-	app := cli.App("cld", "Uploads images to Cloudinary")
+	app := cli.App("cld", "Uploads image, video and audio files to Cloudinary")
 
 	imagePath := app.StringArg("INPUT", ".", "The input file or directory to process")
 	uploadPreset := app.StringOpt("p preset", "", "Cloudinary upload preset")
 	uploadFolder := app.StringOpt("f folder", "", "Cloudinary upload folder")
-	fileExtensions := app.StringOpt("e extensions", "jpg,jpeg,png,gif,bmp,tiff,webp",
+	fileExtensions := app.StringOpt("e extensions", strings.Join(supportedFileExtensions, ","),
 		"Comma-separated list of file extensions to upload")
 	apiKey := app.StringOpt("a api-key", "", "API key to select Cloudinary account")
 
@@ -96,8 +103,12 @@ func process(
 	}
 
 	ctx := context.Background()
-	if fileInfo.IsDir() {
-		return fmt.Errorf("input is a directory: %s", *imagePath)
+	if !fileInfo.IsDir() {
+		if isFileSupported(fileInfo.Name()) {
+			return uploadFile(ctx, cld, *imagePath, *uploadPreset, *uploadFolder)
+		}
+
+		return fmt.Errorf("input file is not a supported image: %s", *imagePath)
 	}
 
 	files, err := os.ReadDir(*imagePath)
@@ -106,7 +117,7 @@ func process(
 	}
 
 	for _, file := range files {
-		if file.IsDir() || !isImage(file.Name(), extList) {
+		if file.IsDir() || !isFileSupported(file.Name()) {
 			continue
 		}
 
@@ -119,8 +130,8 @@ func process(
 	return nil
 }
 
-func isImage(fileName string, extList []string) bool {
-	for _, ext := range extList {
+func isFileSupported(fileName string) bool {
+	for _, ext := range supportedFileExtensions {
 		if strings.HasSuffix(strings.ToLower(fileName), "."+ext) {
 			return true
 		}
