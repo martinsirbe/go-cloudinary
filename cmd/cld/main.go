@@ -96,12 +96,8 @@ func process(
 	}
 
 	ctx := context.Background()
-	if !fileInfo.IsDir() {
-		if isImage(fileInfo.Name(), extList) {
-			return uploadFile(ctx, cld, *imagePath, *uploadPreset, *uploadFolder)
-		}
-
-		return fmt.Errorf("input file is not a supported image: %s", *imagePath)
+	if fileInfo.IsDir() {
+		return fmt.Errorf("input is a directory: %s", *imagePath)
 	}
 
 	files, err := os.ReadDir(*imagePath)
